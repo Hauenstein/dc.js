@@ -17,7 +17,7 @@ dc.bubbleMixin = function (_chart) {
 
     _chart.renderLabel(true);
 
-    _chart.data(function (group) {
+    _chart.data(function(group) {
         return group.top(Infinity);
     });
 
@@ -109,7 +109,7 @@ dc.bubbleMixin = function (_chart) {
 
     _chart.doUpdateLabels = function (bubbleGEnter) {
         if (_chart.renderLabel()) {
-            var labels = bubbleGEnter.selectAll('text')
+            var labels = bubbleGEnter.select('text')
                 .text(labelFunction);
             dc.transition(labels, _chart.transitionDuration())
                 .attr('opacity', labelOpacity);
@@ -126,13 +126,13 @@ dc.bubbleMixin = function (_chart) {
 
             if (title.empty()) {
                 g.append('title').text(titleFunction);
-            }
+        }
         }
     };
 
     _chart.doUpdateTitles = function (g) {
         if (_chart.renderTitle()) {
-            g.selectAll('title').text(titleFunction);
+            g.select('title').text(titleFunction);
         }
     };
 
