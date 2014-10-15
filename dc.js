@@ -3482,7 +3482,7 @@ dc.bubbleMixin = function (_chart) {
 
     _chart.renderLabel(true);
 
-    _chart.data(function (group) {
+    _chart.data(function(group) {
         return group.top(Infinity);
     });
 
@@ -3574,7 +3574,7 @@ dc.bubbleMixin = function (_chart) {
 
     _chart.doUpdateLabels = function (bubbleGEnter) {
         if (_chart.renderLabel()) {
-            var labels = bubbleGEnter.selectAll('text')
+            var labels = bubbleGEnter.select('text')
                 .text(labelFunction);
             dc.transition(labels, _chart.transitionDuration())
                 .attr('opacity', labelOpacity);
@@ -3591,13 +3591,13 @@ dc.bubbleMixin = function (_chart) {
 
             if (title.empty()) {
                 g.append('title').text(titleFunction);
-            }
+        }
         }
     };
 
     _chart.doUpdateTitles = function (g) {
         if (_chart.renderTitle()) {
-            g.selectAll('title').text(titleFunction);
+            g.select('title').text(titleFunction);
         }
     };
 
@@ -5521,14 +5521,14 @@ var bubbleChart2 = dc.bubbleChart('#chart-container2', 'chartGroupA');
 ```
 
 **/
-dc.bubbleChart = function (parent, chartGroup) {
+dc.bubbleChart = function(parent, chartGroup) {
     var _chart = dc.bubbleMixin(dc.coordinateGridMixin({}));
 
     var _elasticRadius = false;
 
     _chart.transitionDuration(750);
 
-    var bubbleLocator = function (d) {
+    var bubbleLocator = function(d) {
         return 'translate(' + (bubbleX(d)) + ',' + (bubbleY(d)) + ')';
     };
 
@@ -5538,7 +5538,7 @@ dc.bubbleChart = function (parent, chartGroup) {
     feature is turned on, then bubble radii will be automatically rescaled to fit the chart better.
 
     **/
-    _chart.elasticRadius = function (_) {
+    _chart.elasticRadius = function(_) {
         if (!arguments.length) {
             return _elasticRadius;
         }
@@ -5546,7 +5546,7 @@ dc.bubbleChart = function (parent, chartGroup) {
         return _chart;
     };
 
-    _chart.plotData = function () {
+    _chart.plotData = function() {
         if (_elasticRadius) {
             _chart.r().domain([_chart.rMin(), _chart.rMax()]);
         }
@@ -5578,7 +5578,7 @@ dc.bubbleChart = function (parent, chartGroup) {
             .attr('fill', _chart.getColor)
             .attr('r', 0);
         dc.transition(bubbleG, _chart.transitionDuration())
-            .selectAll('circle.' + _chart.BUBBLE_CLASS)
+            .select('circle.' + _chart.BUBBLE_CLASS)
             .attr('r', function (d) {
                 return _chart.bubbleR(d);
             })
@@ -5594,7 +5594,7 @@ dc.bubbleChart = function (parent, chartGroup) {
     function updateNodes(bubbleG) {
         dc.transition(bubbleG, _chart.transitionDuration())
             .attr('transform', bubbleLocator)
-            .selectAll('circle.' + _chart.BUBBLE_CLASS)
+            .select('circle.' + _chart.BUBBLE_CLASS)
             .attr('fill', _chart.getColor)
             .attr('r', function (d) {
                 return _chart.bubbleR(d);
