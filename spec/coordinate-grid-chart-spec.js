@@ -188,6 +188,36 @@ describe('dc.coordinateGridChart', function() {
 
             });
 
+            describe('with a complex selector', function() {
+                beforeEach(function() {
+                    var sel = appendChartID('coordinate-grid').append('div').attr('class', 'chart');
+                    chart = dc.lineChart("#coordinate-grid .chart")
+                        .width(500)
+                        .height(150)
+                        .dimension(dimension)
+                        .group(group)
+                        .transitionDuration(0)
+                        .brushOn(false)
+                        .margins({ top: 20, bottom: 0, right: 10, left: 0 })
+                        .x(d3.time.scale.utc().domain([makeDate(2012, 4, 20), makeDate(2012, 7, 15)]));
+                    chart.render();
+                });
+                it('should generate a valid clippath id', function() {
+                    var rect = chart.select("defs #coordinate-grid--chart-clip rect");
+                    expect(rect.empty()).toBeFalsy();
+                });
+            });
+
+            describe('redrawing at a different size', function() {
+                beforeEach(function() {
+                    chart.width(300).height(400).redraw();
+                });
+                it('should change the clippath to the new size', function() {
+                    var rect = chart.select("defs #coordinate-grid-chart-clip rect");
+                    expect(rect.attr("width")).toBe('290');
+                    expect(rect.attr("height")).toBe('380');
+                });
+            });
         });
 
         describe('when an x function is not provided', function () {
@@ -319,6 +349,17 @@ describe('dc.coordinateGridChart', function() {
                             expect(nthGridLine(0).attr('x1')).toBeWithinDelta(6, 1);
                             expect(nthGridLine(1).attr('x1')).toBeWithinDelta(175, 1);
                             expect(nthGridLine(2).attr('x1')).toBeWithinDelta(237, 1);
+                        });
+                    });
+
+                    describe('with an ordinal x axis', function() {
+                        beforeEach(function() {
+                            chart.x(d3.scale.ordinal())
+                                .xUnits(dc.units.ordinal)
+                                .render();
+                        });
+                        it('should render without errors', function() {
+                            expect(chart.selectAll('.grid-line.vertical line').size()).toBe(6);
                         });
                     });
                 });
@@ -670,7 +711,9 @@ describe('dc.coordinateGridChart', function() {
                 });
 
                 it("should update chart filter to match new x domain", function () {
-                    expect(chart.filter()).toEqual(chart.x().domain());
+                    var filter = chart.filter();
+                    delete filter.isFiltered;
+                    expect(filter).toEqual(chart.x().domain());
                 });
 
                 it("should be rescaled", function () {
@@ -781,7 +824,10 @@ describe('dc.coordinateGridChart', function() {
             rangeChart.brush().extent(selectedRange);
             rangeChart.brush().event(rangeChart.g());
             jasmine.clock().tick(100);
-            expect(chart.focus).toHaveBeenCalledWith(selectedRange);
+            // expect(chart.focus).toHaveBeenCalledWith(selectedRange);
+            var focus = chart.focus.calls.argsFor(0)[0];
+            delete focus.isFiltered;
+            expect(focus).toEqual(selectedRange);
         });
 
         it("should zoom the focus chart back out when range chart is un-brushed", function () {
@@ -798,7 +844,10 @@ describe('dc.coordinateGridChart', function() {
         it("should update the range chart brush to match zoomed domain of focus chart", function () {
             spyOn(rangeChart, "replaceFilter");
             chart.focus(selectedRange);
-            expect(rangeChart.replaceFilter).toHaveBeenCalledWith(selectedRange);
+            // expect(rangeChart.replaceFilter).toHaveBeenCalledWith(selectedRange);
+            var replaceFilter = rangeChart.replaceFilter.calls.argsFor(0)[0];
+            delete replaceFilter.isFiltered;
+            expect(replaceFilter).toEqual(selectedRange);
         });
     });
 

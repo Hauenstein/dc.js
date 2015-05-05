@@ -13,6 +13,7 @@ dc.baseMixin = function (_chart) {
     var _anchor;
     var _root;
     var _svg;
+    var _isChild;
 
     var _minWidth = 200;
     var _defaultWidth = function (element) {
@@ -46,7 +47,6 @@ dc.baseMixin = function (_chart) {
 
     var _filterPrinter = dc.printers.filters;
 
-    var _renderlets = [];
     var _mandatoryAttributes = ['dimension', 'group'];
 
     var _chartGroup = dc.constants.DEFAULT_CHART_GROUP;
@@ -57,7 +57,8 @@ dc.baseMixin = function (_chart) {
         'preRedraw',
         'postRedraw',
         'filtered',
-        'zoomed');
+        'zoomed',
+        'renderlet');
 
     var _legend;
 
@@ -299,11 +300,13 @@ dc.baseMixin = function (_chart) {
         if (dc.instanceOfChart(a)) {
             _anchor = a.anchor();
             _root = a.root();
+            _isChild = true;
         } else {
             _anchor = a;
             _root = d3.select(_anchor);
             _root.classed(dc.constants.CHART_CLASS, true);
             dc.registerChart(_chart, chartGroup);
+            _isChild = false;
         }
         _chartGroup = chartGroup;
         return _chart;
@@ -322,7 +325,7 @@ dc.baseMixin = function (_chart) {
         if (a && a.replace) {
             return a.replace('#', '');
         }
-        return '' + _chart.chartID();
+        return 'dc-chart' + _chart.chartID();
     };
 
     /**
@@ -476,13 +479,13 @@ dc.baseMixin = function (_chart) {
         if (_chart.transitionDuration() > 0 && _svg) {
             _svg.transition().duration(_chart.transitionDuration())
                 .each('end', function () {
-                    runAllRenderlets();
+                    _listeners['renderlet'](_chart);
                     if (event) {
                         _listeners[event](_chart);
                     }
                 });
         } else {
-            runAllRenderlets();
+            _listeners['renderlet'](_chart);
             if (event) {
                 _listeners[event](_chart);
             }
@@ -541,9 +544,10 @@ dc.baseMixin = function (_chart) {
     };
 
     /**
-    Set or get the has filter handler. The has filter handler is a function that performs the logical check if the
-    current chart's filters have a specific filter.  Using a custom has filter handler allows you to perform additional
-    logic upon checking if a filter exists.
+    #### .hasFilterHandler([function])
+    Set or get the has filter handler. The has filter handler is a function that checks to see if
+    the chart's current filters include a specific filter.  Using a custom has filter handler allows
+    you to change the way filters are checked for and replaced.
 
     ```js
     // default has filter handler
@@ -557,7 +561,7 @@ dc.baseMixin = function (_chart) {
     }
 
     // custom filter handler (no-op)
-    chart.hasFilterHandler(function(filter) {
+    chart.hasFilterHandler(function(filters, filter) {
         return false;
     });
     ```
@@ -591,9 +595,13 @@ dc.baseMixin = function (_chart) {
     };
 
     /**
-    Set or get the remove filter handler. The remove filter handler is a function that performs the removal of a filter
-    from the chart's current filters. Using a custom remove filter handler allows you to perform additional logic
-    upon removing a filter.  Any changes should modify the `filters` argument reference and return that reference.
+    #### .removeFilterHandler([function])
+    Set or get the remove filter handler. The remove filter handler is a function that removes a
+    filter from the chart's current filters. Using a custom remove filter handler allows you to
+    change how filters are removed or perform additional work when removing a filter, e.g. when
+    using a filter server other than crossfilter.
+
+    Any changes should modify the `filters` array argument and return that array.
 
     ```js
     // default remove filter handler
@@ -627,9 +635,13 @@ dc.baseMixin = function (_chart) {
     };
 
     /**
-    Set or get the add filter handler. The add filter handler is a function that performs the addition of a filter
-    to the charts filter list. Using a custom add filter handler allows you to perform additional logic
-    upon adding a filter.  Any changes should modify the `filters` argument reference and return that reference.
+    #### .addFilterHandler([function])
+    Set or get the add filter handler. The add filter handler is a function that adds a filter to
+    the chart's filter list. Using a custom add filter handler allows you to change the way filters
+    are added or perform additional work when adding a filter, e.g. when using a filter server other
+    than crossfilter.
+
+    Any changes should modify the `filters` array argument and return that array.
 
     ```js
     // default add filter handler
@@ -652,14 +664,18 @@ dc.baseMixin = function (_chart) {
         return _chart;
     };
 
-    var _resetFilterHandler = function () {
+    var _resetFilterHandler = function (filters) {
         return [];
     };
 
     /**
-    Set or get the reset filter handler. The reset filter handler is a function that performs the reset of the filters
-    list by returning the new list. Using a custom reset filter handler allows you to perform additional logic
-    upon reseting the filters.  This function should return an array.
+    #### .resetFilterHandler([function])
+    Set or get the reset filter handler. The reset filter handler is a function that resets the
+    chart's filter list by returning a new list. Using a custom reset filter handler allows you to
+    change the way filters are reset, or perform additional work when resetting the filters,
+    e.g. when using a filter server other than crossfilter.
+
+    This function should return an array.
 
     ```js
     // default remove filter handler
@@ -668,7 +684,7 @@ dc.baseMixin = function (_chart) {
     }
 
     // custom filter handler (no-op)
-    chart.addFilterHandler(function(filters) {
+    chart.resetFilterHandler(function(filters) {
         return filters;
     });
     ```
@@ -967,6 +983,9 @@ dc.baseMixin = function (_chart) {
     right after the chart finishes its own drawing routine, giving you a way to modify the svg
     elements. Renderlet functions take the chart instance as the only input parameter and you can
     use the dc API or use raw d3 to achieve pretty much any effect.
+
+    @Deprecated - Use [Listeners](#Listeners) with a 'renderlet' prefix
+    Generates a random key for the renderlet, which makes it hard for removal.
     ```js
     // renderlet function
     chart.renderlet(function(chart){
@@ -978,16 +997,10 @@ dc.baseMixin = function (_chart) {
     ```
 
     **/
-    _chart.renderlet = function (_) {
-        _renderlets.push(_);
+    _chart.renderlet = dc.logger.deprecate(function (_) {
+        _chart.on('renderlet.' + dc.utils.uniqueId(), _);
         return _chart;
-    };
-
-    function runAllRenderlets() {
-        for (var i = 0; i < _renderlets.length; ++i) {
-            _renderlets[i](_chart);
-        }
-    }
+    }, 'chart.renderlet has been deprecated.  Please use chart.on("renderlet.<renderletKey>", renderletFunction)');
 
     /**
     #### .chartGroup([group])
@@ -998,7 +1011,13 @@ dc.baseMixin = function (_chart) {
         if (!arguments.length) {
             return _chartGroup;
         }
+        if (!_isChild) {
+            dc.deregisterChart(_chart, _chartGroup);
+        }
         _chartGroup = _;
+        if (!_isChild) {
+            dc.registerChart(_chart, _chartGroup);
+        }
         return _chart;
     };
 
@@ -1067,6 +1086,10 @@ dc.baseMixin = function (_chart) {
     /**
     ## Listeners
     All dc chart instance supports the following listeners.
+
+    #### .on('renderlet', function(chart, filter){...})
+    This listener function will be invoked after transitions after redraw and render. Replaces the
+    deprecated `.renderlet()` method.
 
     #### .on('preRender', function(chart){...})
     This listener function will be invoked before chart rendering.
