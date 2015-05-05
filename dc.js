@@ -3616,7 +3616,7 @@ dc.bubbleMixin = function (_chart) {
 
     _chart.doUpdateLabels = function (bubbleGEnter) {
         if (_chart.renderLabel()) {
-            var labels = bubbleGEnter.selectAll('text')
+            var labels = bubbleGEnter.select('text')
                 .text(labelFunction);
             dc.transition(labels, _chart.transitionDuration())
                 .attr('opacity', labelOpacity);
@@ -3639,7 +3639,7 @@ dc.bubbleMixin = function (_chart) {
 
     _chart.doUpdateTitles = function (g) {
         if (_chart.renderTitle()) {
-            g.selectAll('title').text(titleFunction);
+            g.select('title').text(titleFunction);
         }
     };
 
@@ -5659,7 +5659,7 @@ dc.bubbleChart = function (parent, chartGroup) {
             .attr('fill', _chart.getColor)
             .attr('r', 0);
         dc.transition(bubbleG, _chart.transitionDuration())
-            .selectAll('circle.' + _chart.BUBBLE_CLASS)
+            .select('circle.' + _chart.BUBBLE_CLASS)
             .attr('r', function (d) {
                 return _chart.bubbleR(d);
             })
@@ -5675,7 +5675,7 @@ dc.bubbleChart = function (parent, chartGroup) {
     function updateNodes(bubbleG) {
         dc.transition(bubbleG, _chart.transitionDuration())
             .attr('transform', bubbleLocator)
-            .selectAll('circle.' + _chart.BUBBLE_CLASS)
+            .select('circle.' + _chart.BUBBLE_CLASS)
             .attr('fill', _chart.getColor)
             .attr('r', function (d) {
                 return _chart.bubbleR(d);
