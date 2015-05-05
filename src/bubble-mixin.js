@@ -17,7 +17,7 @@ dc.bubbleMixin = function (_chart) {
 
     _chart.renderLabel(true);
 
-    _chart.data(function(group) {
+    _chart.data(function (group) {
         return group.top(Infinity);
     });
 
@@ -126,7 +126,7 @@ dc.bubbleMixin = function (_chart) {
 
             if (title.empty()) {
                 g.append('title').text(titleFunction);
-        }
+            }
         }
     };
 

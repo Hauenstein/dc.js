@@ -34,14 +34,14 @@ var bubbleChart2 = dc.bubbleChart('#chart-container2', 'chartGroupA');
 ```
 
 **/
-dc.bubbleChart = function(parent, chartGroup) {
+dc.bubbleChart = function (parent, chartGroup) {
     var _chart = dc.bubbleMixin(dc.coordinateGridMixin({}));
 
     var _elasticRadius = false;
 
     _chart.transitionDuration(750);
 
-    var bubbleLocator = function(d) {
+    var bubbleLocator = function (d) {
         return 'translate(' + (bubbleX(d)) + ',' + (bubbleY(d)) + ')';
     };
 
@@ -51,7 +51,7 @@ dc.bubbleChart = function(parent, chartGroup) {
     feature is turned on, then bubble radii will be automatically rescaled to fit the chart better.
 
     **/
-    _chart.elasticRadius = function(_) {
+    _chart.elasticRadius = function (_) {
         if (!arguments.length) {
             return _elasticRadius;
         }
@@ -59,7 +59,7 @@ dc.bubbleChart = function(parent, chartGroup) {
         return _chart;
     };
 
-    _chart.plotData = function() {
+    _chart.plotData = function () {
         if (_elasticRadius) {
             _chart.r().domain([_chart.rMin(), _chart.rMax()]);
         }
