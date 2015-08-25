@@ -34,6 +34,10 @@ describe('dc.barChart', function() {
             });
         });
 
+        it("should preserve method chaining", function() {
+            expect(chart.render()).toEqual(chart);
+        });
+
         describe("with centered bars", function() {
             beforeEach(function() {
                 chart.centerBar(true).render();
@@ -255,7 +259,7 @@ describe('dc.barChart', function() {
             describe('with a custom click handler', function() {
                 beforeEach(function() {
                     chart.brushOn(false)
-                        .renderlet(function(_chart) {
+                        .on('renderlet', function(_chart) {
                             _chart.selectAll("rect.bar").on("click", _chart.onClick);
                         })
                         .render();
