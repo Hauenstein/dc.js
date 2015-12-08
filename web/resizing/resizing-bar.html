@@ -41,7 +41,6 @@ d3.csv("../examples/morley.csv", function(error, experiments) {
     });
     chart.render();
 
-    // respond to browser resize (not necessary if width/height is static)
     window.onresize = function() {
         chart
             .width(window.innerWidth-20)
@@ -49,7 +48,6 @@ d3.csv("../examples/morley.csv", function(error, experiments) {
             .rescale()
             .redraw();
       };
-
 });
 
 </script>
